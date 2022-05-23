@@ -3,11 +3,11 @@ import { ShaderProgram } from './shader-program';
 import { VertexArray } from './vertex-array';
 import { Matrix4 } from './matrix';
 import { Vector3, Vector4 } from './vector';
-import { Camera } from './camera';
 import { TerrainCamera } from './terraincamera';
 import { Terrain } from './terrain';
 
 let canvas;
+
 let attributes;
 let fireAttributes;
 let waterAttributes;
@@ -16,18 +16,19 @@ let shaderProgram;
 let fireShaderProgram;
 let waterShaderProgram;
 
-let normals = [];
 let vao;
 let fireVao;
 let waterVao;
 
 let clipFromEye;
 let worldFromModel = Matrix4.identity();
-let scale;
-let greyScale;
-let position = new Vector3(0, 0, 5);
+
+let position = new Vector3(0, 0, 0);
 let worldUp = new Vector3(0, 1, 0);
 let lookAt = new Vector3(0, 0, 0);
+
+let scale;
+let greyScale;
 let terrainCam;
 let terrain;
 let tri;
@@ -39,6 +40,9 @@ let waterIndices = [];
 let firePositions = [];
 let fireTexPositions = [];
 let fireIndices = [];
+
+let normals = [];
+
 
 function render() {
   gl.viewport(0, 0, canvas.width, canvas.height);
@@ -88,6 +92,7 @@ function render() {
 
 }
 
+
 function onResizeWindow() {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -95,13 +100,14 @@ function onResizeWindow() {
   render();
 }
 
+
 async function readImage(url) {
   const image = new Image();
   image.src = url;
-  console.log(url);
   await image.decode();
   return image;
 }
+
 
 function imageToGrayscale(image) {
   const canvas = document.createElement('canvas');
@@ -116,9 +122,9 @@ function imageToGrayscale(image) {
   for (let i = 0; i < image.width * image.height; ++i) {
     grays[i] = pixels.data[i * 4] * .1;
   }
-
   return grays;
 }
+
 
 function createTexture2d(image, textureUnit = gl.TEXTURE0) {
   gl.activeTexture(textureUnit);
@@ -154,9 +160,11 @@ function onKeyDown(event) {
     let position = new Vector3(waterPositions[i], waterPositions[i+1], waterPositions[i+2]);
     let XPos = Math.abs(terrainCam.position.x - position.x);
     let YPos = Math.abs(terrainCam.position.z - position.z);
-    if (XPos < 1 && YPos < 1) // We have collected the water and need to delete it from the scene.
+
+    // We have collected the water and need to delete it from the scene.
+    if (XPos < 1 && YPos < 1)
     {
-      playSound();
+      playSound("watersound.wav");
       waterPositions[i] = 0;
       waterPositions[i+1] = 0;
       waterPositions[i+2] = 0;
@@ -178,12 +186,24 @@ function onKeyDown(event) {
 
     }
   }
+    // Checking how close the camera is to fire
+    for (let i = 0; i < firePositions.length; i+=12) {
+      let position = new Vector3(firePositions[i], firePositions[i+1], firePositions[i+2]);
+      let XPos = Math.abs(terrainCam.position.x - position.x);
+      let YPos = Math.abs(terrainCam.position.z - position.z);
+  
+      // We have collected the water and need to delete it from the scene.
+      if (XPos < 1 && YPos < 1)
+      {
+        playSound("firesound.wav");
+      }
+    }
   render();
 }
 
 // Populate the positions, texPositions and indices arrays for the elements
 function generateElements(positions, texPositions, indices) {
-  let n = 100;
+  let n = 500;
 
   for (let i = 0; i < n; i++) {
     let x = Math.random() * terrain.width;
@@ -250,8 +270,8 @@ function updateWater(attributes) {
 }
 
 // Play sound
-function playSound() {
-  const audio = new Audio("sound.wav");
+function playSound(sound) {
+  const audio = new Audio(sound);
   audio.play();
 }
 
@@ -268,8 +288,10 @@ async function initialize() {
 
   const texImg = await readImage('noise-terrain.png');
   greyScale = imageToGrayscale(texImg);
+
   const fireImg = await readImage('fire.png');
   createTexture2d(fireImg,gl.TEXTURE0);
+
   const waterImg = await readImage('water.png');
   createTexture2d(waterImg,gl.TEXTURE1);
 
