@@ -1,2 +1,1 @@
-- Hi, my name is Kennedy O'Hanley, and I am a senior college student studying Computer Science and Math. 
-- Here are some fun projects I have been working on!
+Hi, my name is Kennedy O'Hanley, and I am a recent gratuate from James Madison University with a degree in Computer Science and Math! Here are some fun projects I have been working on! Reach out at kennedycohanley@gmail.com for any information. 
